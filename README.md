@@ -25,6 +25,13 @@ Lister les groupes de ressources (sous forme de table):
 ```
 
 # Environnement
+
+## Fichier .env (à partir des infos sur Vision)
+__OCR_API__="https://invoiceocrp3.azurewebsites.net/invoices"  
+__VISION_KEY__="XXXXXXXXXXXXXXXXXXX"  
+__VISION_ENDPOINT__="https://XXXXXXXXXXXX.cognitiveservices.azure.com/"  
+
+
 Création venv:
 ```bash
  python3 -m venv venv
