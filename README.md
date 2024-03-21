@@ -13,8 +13,13 @@ Connection à Azure:
 
 Création de groupe de ressources:
 ```bash
- RESOURCE_GROUP=ocr-myname
+ RESOURCE_GROUP=ocr-goudot
  LOCATION=francecentral
 
  az group create --name $RESOURCE_GROUP --location $LOCATION
+```
+
+Lister les groupes de ressources (sous forme de table):
+```bash
+ az group list -o table
 ```
