@@ -39,7 +39,8 @@ Execution prog:
 ```
 
 # Azure Vision API
-OCR:
+Documentation : https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/quickstarts-sdk/image-analysis-client-library-40?tabs=visual-studio%2Clinux&pivots=programming-language-python  
+OCR avec curl:
 ```bash
  IMAGE="https://invoiceocrp3.azurewebsites.net/invoices/FAC_2024_0002-2338479"
  curl -s -H "Ocp-Apim-Subscription-Key: $VISION_KEY" -H "Content-Type: application/json" "$VISION_ENDPOINT/computervision/imageanalysis:analyze?features=caption,read&model-version=latest&language=en&api-version=2024-02-01" -d "{'url':'$IMAGE'}" | jq
