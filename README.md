@@ -24,6 +24,31 @@ Lister les groupes de ressources (sous forme de table):
  az group list -o table
 ```
 
+Liste des locations:
+```bash
+ az account list-locations -o table
+```
+
+Liste des SKU:
+lien: [azure virtual-machines](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/quick-create-cli) 
+```bash
+ az vm list-skus --location $LOCATION --size Standard_D --all --output table
+```
+
+Création VM:
+
+```bash
+ VM_NAME=vm-ocr-goudot
+ VM_USERNAME=goudot
+ VM_IMAGE=UbuntuLTS
+ VM_SIZE=Standard_D2ads_v5
+
+ az vm create -n $VM_NAME -g $RESOURCE_GROUP \
+  --image $VM_IMAGE --size $VM_SIZE \
+  --admin-username $VM_USERNAME \
+  --ssh-key-values @/home/goudot/.ssh/id_rsa.pub
+```
+
 # Environnement
 
 ## Fichier .env (à partir des infos sur Vision)
@@ -49,6 +74,26 @@ Execution prog:
 Documentation : https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/quickstarts-sdk/image-analysis-client-library-40?tabs=visual-studio%2Clinux&pivots=programming-language-python  
 OCR avec curl:
 ```bash
+ IMG="FAC_2024_0002-2338479mod.png"
  IMAGE="https://invoiceocrp3.azurewebsites.net/invoices/FAC_2024_0002-2338479"
- curl -s -H "Ocp-Apim-Subscription-Key: $VISION_KEY" -H "Content-Type: application/json" "$VISION_ENDPOINT/computervision/imageanalysis:analyze?features=caption,read&model-version=latest&language=en&api-version=2024-02-01" -d "{'url':'$IMAGE'}" | jq
+ IMAGE="https://app.myconnectech.fr/public/"$IMG
+ curl -v -H "Ocp-Apim-Subscription-Key: $VISION_KEY" \
+ -H "Content-Type: application/json" \
+ "$VISION_ENDPOINT/computervision/imageanalysis:analyze?features=caption,read&model-version=latest&language=en&api-version=2024-02-01" \
+ -d "{'url':'$IMAGE'}" | jq > data/$IMG.json
+```
+
+Grande image 
+```bash
+ FN="data/FAC_2024_0270-96131.png.png"
+ 
+ curl -v -H "Ocp-Apim-Subscription-Key: $VISION_KEY" \
+ -H "Content-Type: application/json" \
+ "$VISION_ENDPOINT/computervision/imageanalysis:analyze?features=caption,read&model-version=latest&language=en&api-version=2024-02-01" \
+ -d "{'url':'$IMAGE'}" | jq
+```
+## tesseract
+
+```bash
+ tesseract data/FAC_2024_0270-96131.png.png output alto
 ```
