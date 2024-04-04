@@ -42,17 +42,18 @@ class Produit(Base):
     #factures = relationship("Facture", back_populates="client")
 
     def __str__(this):
-        return f"PRODUIT [{this.name}]"
+        return f"PRODUIT [{this.name}] {this.price}€"
 
 class Commande(Base):
     __tablename__ = 'commandes'
     facture_id = mapped_column(ForeignKey("factures.no"), primary_key=True)
     #facture = relationship("Facture", back_populates="commandes")
     produit_id = mapped_column(ForeignKey("produits.name"), primary_key=True)
+    produit = relationship("Produit") # , back_populates="factures"
     qty = Column(Integer)
 
     def __str__(this):
-        return f"CMD {this.qty} x [{this.facture_id}, {this.produit_id}]"
+        return f"CMD {this.qty} x [{this.facture_id}, {this.produit}]" # : {this.qty*this.produit.price}€
 
 
 class Facture(Base):
@@ -64,6 +65,8 @@ class Facture(Base):
     cumul = Column(Float)
     client_id = mapped_column(ForeignKey("clients.id"))
     client = relationship("Client", back_populates="factures")
+
+    commandes = relationship("Commande") # , back_populates="factures"
 
     def __str__(this):
         return f"FACTURE [{this.no}] {this.total}€"
@@ -86,7 +89,7 @@ class Facture(Base):
 
                 fac = session.execute(select(Facture).where(Facture.no == no)).scalar()
                 if fac:
-                    print(f"Facture {no} déjà traitée !")
+                    #print(f"Facture {no} déjà traitée !")
                     continue
 
                 # Récupération image si pas présente
@@ -103,8 +106,9 @@ class Facture(Base):
                 # Utilisation tesseract --psm 4
                 if not os.path.exists(fn+".txt"):
                     print(f"tesseract {fn}.txt")
+                    subprocess.run(["convert", fn, "-fill", "White", "-draw", "rectangle 500,0 900,150", f"static/{no}mod.png"]) # tesseract data/FAC_2024_0172-2382800.png stdout --psm 4
                     with open(fn+".txt", "w") as f:
-                        subprocess.run(["tesseract", fn, "stdout", "--psm", "4"], stdout=f) # tesseract data/FAC_2024_0172-2382800.png stdout --psm 4
+                        subprocess.run(["tesseract", f"static/{no}mod.png", "stdout", "--psm", "4"], stdout=f) # tesseract data/FAC_2024_0172-2382800.png stdout --psm 4
                 # Récupération QR
                 if not os.path.exists(fn+"qr.txt"):
                     with open(fn+"qr.txt", "w") as f:
@@ -123,15 +127,21 @@ class Facture(Base):
                     for line in f:
                         if not line: continue
                         if 'Bill to' in line: bill['cust']=line[8:-1]
-                        if 'Address' in line: bill['adr']=line[8:]+next(f)
-                        m=re.match(r'TOTAL *([0-9.]+)', line)
+                        m=re.match(r'TOTAL *([0-9.,]+)', line)
                         if m:
-                            bill['total']=float(m.group(1))
-                        m=re.match(r'^([^.]*).*([0-9]+) *x *([0-9.]+)', line)
+                            bill['total']=float(m.group(1).replace(',', '.'))
+                        m=re.match(r'^([^.]*).*([STi0-9]+)[d\.]? *x[«]? *([0-9][0-9.,]*)', line)
                         if m:
-                            print(m.group(1), '/', m.group(2), '/', m.group(3))
-                            bill['prod'].append({'name': m.group(1), 'qty': m.group(2), 'price': m.group(3)})
-                            bill['cumul'] += int(m.group(2)) * float(m.group(3))
+                            qty=m.group(2)
+                            if qty=='T': qty='7'
+                            if qty=='S': qty='5'
+                            if qty=='i': qty='1'
+                            price=m.group(3).replace(',', '.')
+                            print(m.group(1), '/', qty, '/', price)
+                            bill['prod'].append({'name': m.group(1), 'qty': qty, 'price': price})
+                            bill['cumul'] += int(qty) * float(price)
+                        else:
+                            if 'Address' in line: bill['adr']=line[8:]+next(f)
 
                 print("***" if bill['cumul']!=bill['total'] else '', bill)
 
@@ -140,7 +150,6 @@ class Facture(Base):
                 if not client:
                     client=Client(id=bill['custid'], name=bill['cust'], adr=bill['adr'], cat=bill['cat'])
                     session.add(client)
-                    session.commit()
                 print(client)
 
                 fac = session.execute(select(Facture).where(Facture.no == bill['no'])).scalar()
@@ -162,85 +171,14 @@ class Facture(Base):
                         cmd=Commande(produit_id=produit.name, facture_id=fac.no, qty=prod['qty'])
                         session.add(cmd)
                     print(cmd)
+                session.commit()
 
-
-
-                '''
-                fnj=f"data/{no}.png.json"
-                IMAGE_URL=OCR_API+"/"+no
-                if not os.path.exists(fnj):
-                    r = requests.post(VISION_URL, headers=headers, json={'url': IMAGE_URL})
-                    print('OCR', fnj, r.status_code)
-                    with open(fnj, "w") as f:
-                        f.write(json.dumps(r.json(), indent=4))
-                dt = datetime.datetime.strptime(doc['dt'], r"%Y-%m-%d %X")
-                bill={'no': no, 'dt':dt, 'prod':[]}
-                with open(fnj) as f:
-                    res=json.load(f)
-                    #print(res)
-                    for line in res['readResult']['blocks'][0]['lines']:
-                        bp=line['boundingPolygon'][0]
-                        txt=line['text']
-                        x=int(bp['x'])
-                        y=bp['y']
-                        nl=round(y/20.0)
-                        print(f"    Line {x} x {y} : {nl} : {txt}")
-                        if nl==4: bill['cust']=txt[8:]
-                        if nl==6: bill['adr']=txt[8:]
-                        if nl==7: bill['adr']+='\n'+txt
-                        if nl>9:
-                            np=nl-10 # n° produit
-                            if np not in bill['prod']: bill['prod'].append({'name':'', 'qty': 0, 'price':0.0})
-                            if x<50:
-                                bill['prod'][np]['name']=txt
-                            elif x>520: bill['prod'][np]['price']=txt.split(' ')[0]
-                            else: bill['prod'][np]['qty']=txt
-                    #print('BILL')
-                    for x in bill['prod']:
-                        if x['name']=='TOTAL':
-                            x['name']=''
-                            bill['total']=x['price']
-                    #print(json.dumps(bill, indent=2))
-                    print(bill)
-                    for x in bill['prod']:
-                        if x['name']:
-                            produit = session.execute(select(Produit).where(Produit.name == x['name'])).first()
-                            if not produit:
-                                produit=Produit(name=x['name'], price=x['price'])
-                                session.add(produit)
-                '''
-
-                '''
-                client = session.execute(select(Client).where(Client.name == bill['cust'])).first()
-                if not client:
-                    client=Client(name=bill['cust'], adr=bill['adr'])
-                    session.add(client)
-
-
-                fac = session.execute(select(Facture).where(Facture.no == bill['no'])).first()
-                #print(doc, res)
-                if not fac:
-                    print('ajout', doc)
-                    fac=Facture(no=no, dt=dt, total=bill['total'])
-                    session.add(fac)
-                    N+=1
-                #fac['total'] = bill['total']
-                '''
-
-            session.commit()
         result=f"{N} factures ajoutées !"
         return result
 
-
 Base.metadata.create_all(bind=engine)
 
-#Facture.extract('2019-01-01')
-#Facture.extract('2019-06-01')
+Facture.extract('2019-01-01')
+Facture.extract('2019-06-01')
 Facture.extract('2024-04-01')
 
-'''
-with Session(engine) as session:
-    client=Client(id=1, name="Tester", adr="inconnu", cat="X")
-    session.add(client)
-    session.commit()
-'''

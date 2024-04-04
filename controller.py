@@ -24,7 +24,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def read_root(request: Request, no: str = 'FAC_2024_0326-9975', cust: str=''):
     with Session(engine) as session:
         fac = session.execute(select(Facture).where(Facture.no == no)).scalar()
-        factures = session.execute(select(Facture.no).limit(10)).all()
+        factures = session.execute(select(Facture.no).order_by(Facture.dt.desc()).limit(10)).all()
         if cust:
             customers=session.execute(select(Client.name, Client.id).where(Client.name.like(f"%{cust}%"))).all()
         else:

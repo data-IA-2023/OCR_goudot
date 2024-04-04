@@ -18,6 +18,7 @@
 
         Fac: {{fac}}, cumul: {{fac.cumul}}€<br/>
         client: {{fac.client}}, cat <b>{{fac.client.cat}}</b></b><br/>
+        commandes : <ul/>{%for c in fac.commandes%}<li>{{c}}</li>{%endfor%}</ul>
         Autre factures: {%for f in fac.client.factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}<br/>
 
         <table>

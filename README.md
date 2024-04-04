@@ -98,7 +98,7 @@ Execution image docker locale (port 3000):
 
 Copie projet -> datalab:
 ```bash
- rsync -avz --exclude=static/* --exclude=venv/  . goudot@$DATALAB:~/OCR_goudot/
+ rsync -avz --exclude=static/* --exclude=venv/ --exclude=.git/  . goudot@$DATALAB:~/OCR_goudot/
 ```
 Sur datalab:
 ```bash
