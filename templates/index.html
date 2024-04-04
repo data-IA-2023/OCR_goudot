@@ -1,0 +1,32 @@
+<html>
+    <header>
+        <title>Appli OCR</title>
+    </header>
+    <body>
+        <h1>Application d'OCR, {{fac}}</h1>
+
+        Pour la Maj : <a href="/updates">lien</a><br/>
+
+        Factures: {%for f in factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}
+
+        <form method="get" action="/">
+            Client: <input id="v1" name="cust" type="text"/>
+            <input id="button" type="submit"/>
+        </form>
+        Customers: {%for c in customers%}{{c.id}} {{c.name}}, {%endfor%}<br/><br/>
+
+
+        Fac: {{fac}}, cumul: {{fac.cumul}}€<br/>
+        client: {{fac.client}}, cat <b>{{fac.client.cat}}</b></b><br/>
+        Autre factures: {%for f in fac.client.factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}<br/>
+
+        <table>
+            <tr>
+                <td><img src="static/{{fac.no}}.png"/></td>
+                <td>OCR:<br/><iframe height="1000px" width="600px" src="static/{{fac.no}}.png.txt"></iframe></td>
+            </tr>
+        </table>
+
+
+    </body>
+</html>

@@ -1,0 +1,5 @@
+.env
+venv/
+.idea/
+data/*.json
+data/*.png

@@ -2,6 +2,13 @@
 
 Projet OCR
 
+# Environnement
+**OCR_API** : https://invoiceocrp3.azurewebsites.net/invoices  
+**DATABASE_URL** : sqlite:///bdd.sqlite
+**VISION_KEY** : d'Azure
+**VISION_ENDPOINT** : Azure
+
+
 # CLI Azure
 Installation : https://learn.microsoft.com/fr-fr/cli/azure/install-azure-cli  
 Documentation az CLI : https://learn.microsoft.com/fr-fr/cli/azure/group?view=azure-cli-latest
@@ -68,6 +75,40 @@ Execution prog:
 ```bash
  source venv/bin/activate
  python3 develOCR.py
+```
+
+Execution appli Flask:
+```bash
+ source venv/bin/activate
+ uvicorn controller:app --port 3000 --host 0.0.0.0 --reload
+```
+
+Création image docker locale:
+```bash
+ docker build -t testocr .
+```
+
+Execution image docker locale (port 3000):
+```bash
+ docker rm testocr
+ # opt -e : variable d'environnement
+ docker run -p 3000:3000 -e MYVAR=XXX --name testocr testocr
+  
+```
+
+Copie projet -> datalab:
+```bash
+ rsync -avz --exclude=static/* --exclude=venv/  . goudot@$DATALAB:~/OCR_goudot/
+```
+Sur datalab:
+```bash
+ docker build -t ocrprog .  
+ docker rm ocrprog  
+ docker run --name ocrprog \
+    -p 3100:3000 \
+    -e OCR_API=https://invoiceocrp3.azurewebsites.net/invoices \
+    -e DATABASE_URL=sqlite:///bdd.sqlite \
+    ocrprog
 ```
 
 # Azure Vision API
