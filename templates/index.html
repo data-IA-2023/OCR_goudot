@@ -7,7 +7,7 @@
 
         Pour la Maj : <a href="/updates">lien</a><br/>
 
-        Factures: {%for f in factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}
+        Factures (total<>cumul): {%for f in factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}
 
         <form method="get" action="/">
             Client: <input id="v1" name="cust" type="text"/>
@@ -28,6 +28,8 @@
             </tr>
         </table>
 
+        <hr/>
+        <img src="static/{{fac.no}}mod.png"/>
 
     </body>
 </html>

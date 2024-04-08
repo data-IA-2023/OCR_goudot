@@ -2,6 +2,14 @@
 
 Projet OCR
 
+# TODO
+- lignes non traitées (adresses)
+- ajout monitoring (date traitement)
+- graphiques & vues
+- commentaires à ajouter
+- garder cumul ???
+- ajout print N sur récup
+
 # Environnement
 **OCR_API** : https://invoiceocrp3.azurewebsites.net/invoices  
 **DATABASE_URL** : sqlite:///bdd.sqlite
@@ -98,7 +106,8 @@ Execution image docker locale (port 3000):
 
 Copie projet -> datalab:
 ```bash
- rsync -avz --exclude=static/* --exclude=venv/ --exclude=.git/  . goudot@$DATALAB:~/OCR_goudot/
+ # Utilisation .rsyncignore
+ rsync -avz --exclude-from=.rsyncignore . goudot@$DATALAB:~/OCR_goudot/
 ```
 Sur datalab:
 ```bash
