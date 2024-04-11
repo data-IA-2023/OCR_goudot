@@ -11,11 +11,12 @@ Projet OCR
 - ajout print N sur récup
 
 # Environnement
+Dans fichier .env:  
 **OCR_API** : https://invoiceocrp3.azurewebsites.net/invoices  
-**DATABASE_URL** : sqlite:///bdd.sqlite
-**VISION_KEY** : d'Azure
-**VISION_ENDPOINT** : Azure
-
+**DATABASE_URL** : sqlite:///bdd.sqlite  
+**VISION_KEY** : d'Azure  
+**VISION_ENDPOINT** : Azure  
+**DISCORD_OCR** : de discord pour poster des messages
 
 # CLI Azure
 Installation : https://learn.microsoft.com/fr-fr/cli/azure/install-azure-cli  
@@ -64,13 +65,7 @@ Création VM:
   --ssh-key-values @/home/goudot/.ssh/id_rsa.pub
 ```
 
-# Environnement
-
-## Fichier .env (à partir des infos sur Vision)
-__OCR_API__="https://invoiceocrp3.azurewebsites.net/invoices"  
-__VISION_KEY__="XXXXXXXXXXXXXXXXXXX"  
-__VISION_ENDPOINT__="https://XXXXXXXXXXXX.cognitiveservices.azure.com/"  
-
+# Environnement python 
 
 Création venv:
 ```bash
@@ -91,6 +86,12 @@ Execution appli Flask:
  uvicorn controller:app --port 3000 --host 0.0.0.0 --reload
 ```
 
+Execution des tests:
+```bash
+ source venv/bin/activate
+ pytest test_modele.py
+```
+
 Création image docker locale:
 ```bash
  docker build -t testocr .
@@ -101,8 +102,74 @@ Execution image docker locale (port 3000):
  docker rm testocr
  # opt -e : variable d'environnement
  docker run -p 3000:3000 -e MYVAR=XXX --name testocr testocr
-  
 ```
+
+# Azure
+
+Création ACR 
+```bash
+ RESOURCE_GROUP=goudot
+ LOCATION=francecentral
+ ACR_NAME=gretap3acr
+ IMAGE=testocr
+
+ az acr create --resource-group $RESOURCE_GROUP \
+    --name $ACR_NAME --sku Basic --admin-enabled true
+
+ # Récupération du password pour y accéder plus tard
+ ACR_PASSWORD=$(az acr credential show -n $ACR_NAME | jq -r '.passwords[0].value')
+ echo ACR_PASSWORD=$ACR_PASSWORD
+ ```
+
+Copie de l'image docker -> Azure ACR:
+```bash
+ docker login $ACR_NAME.azurecr.io 
+ docker tag $IMAGE $ACR_NAME.azurecr.io/$IMAGE 
+ docker push $ACR_NAME.azurecr.io/$IMAGE 
+ ```
+
+Création instance conteneur sur Azure:
+```bash
+ RESOURCE_GROUP=goudot
+ LOCATION=francecentral
+ ACR_NAME=gretap3acr
+ IMAGE=testocr
+ ECR_NAME=ecr-ocr-goudot
+ 
+ az container create \
+    --resource-group $RESOURCE_GROUP \
+    --name $ECR_NAME \
+    --image $ACR_NAME.azurecr.io/$IMAG``E \
+    --registry-username $ACR_NAME \
+    --registry-password $ACR_PASSWORD \
+    --dns-name-label $ECR_NAME \
+    --ports 3000 \
+    --environment-variables MYENV=123 \
+    --secure-environment-variables SECRET=ABCD
+
+```
+Documentation : https://learn.microsoft.com/en-us/cli/azure/container?view=azure-cli-latest
+Visit : http://ecrp2az1.francecentral.azurecontainer.io:5000
+
+Restart conteneur:
+```bash
+ az container restart \
+    --resource-group $RESOURCE_GROUP \
+    --name $ECR_NAME
+```
+
+Liste des Conteneurs:
+```bash
+ az container list -o table
+```
+
+Logs Conteneur:
+```bash
+ az container logs --resource-group $RESOURCE_GROUP --name $ECR_NAME
+```
+
+
+
 
 Copie projet -> datalab:
 ```bash
