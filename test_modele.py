@@ -80,4 +80,5 @@ CAT:C''')
 
         assert len(fac.commandes)==4
         assert fac.commandes[1].qty==8
+        assert fac.commandes[2].qty==2
         assert fac.commandes[3].produit.price==59.73
