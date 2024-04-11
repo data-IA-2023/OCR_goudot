@@ -8,7 +8,7 @@ from sqlalchemy import select, update, delete
 #sqlalchemy.exc.IntegrityError
 import sqlalchemy, pytest
 
-def test_0(env_bdd):
+def test_0():
     '''
     Check BDD vide !
     '''
@@ -17,7 +17,7 @@ def test_0(env_bdd):
         res=session.execute(select(Client)).all()
         assert len(res)==0
 
-def test_Error(env_bdd):
+def test_Error():
     with Session(engine) as session:
         client = Client(id=1, name='Essai', adr='Ici', cat='X')
         session.add(client)
@@ -29,7 +29,7 @@ def test_Error(env_bdd):
         assert str(excp.value)
 
 
-def test_1(env_bdd):
+def test_1():
     with Session(engine) as session:
         client = Client(id=1, name='Essai', adr='Ici', cat='X')
         session.add(client)
