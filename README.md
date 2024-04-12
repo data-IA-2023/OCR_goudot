@@ -135,15 +135,16 @@ Création instance conteneur sur Azure:
  ACR_NAME=gretap3acr
  IMAGE=testocr
  ECR_NAME=ecr-ocr-goudot
+ PORT=3000
  
  az container create \
     --resource-group $RESOURCE_GROUP \
     --name $ECR_NAME \
-    --image $ACR_NAME.azurecr.io/$IMAG``E \
+    --image $ACR_NAME.azurecr.io/$IMAGE \
     --registry-username $ACR_NAME \
     --registry-password $ACR_PASSWORD \
     --dns-name-label $ECR_NAME \
-    --ports 3000 \
+    --ports $PORT \
     --environment-variables MYENV=123 \
     --secure-environment-variables SECRET=ABCD
 
@@ -212,5 +213,6 @@ Grande image
 ## tesseract
 
 ```bash
- tesseract data/FAC_2024_0270-96131.png.png output alto
+ #tesseract data/FAC_2024_0270-96131.png.png output alto
+ tesseract static/FAC_2024_0270-96131.png stdout --psm 4
 ```
