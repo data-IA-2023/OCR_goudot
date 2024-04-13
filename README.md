@@ -101,7 +101,8 @@ Execution image docker locale (port 3000):
 ```bash
  docker rm testocr
  # opt -e : variable d'environnement
- docker run -p 3000:3000 -e MYVAR=XXX --name testocr testocr
+ #docker run -p 3000:3000 -e MYVAR=XXX -e VAR2=555 --name testocr testocr
+ docker run -p 3000:3000 --env-file .env --name testocr testocr
 ```
 
 # Azure
@@ -133,8 +134,8 @@ Création instance conteneur sur Azure:
  RESOURCE_GROUP=goudot
  LOCATION=francecentral
  ACR_NAME=gretap3acr
- IMAGE=testocr
- ECR_NAME=ecr-ocr-goudot
+ IMAGE=ocrprog
+ ECR_NAME=ocrprog-goudot
  PORT=3000
  
  az container create \
@@ -145,8 +146,9 @@ Création instance conteneur sur Azure:
     --registry-password $ACR_PASSWORD \
     --dns-name-label $ECR_NAME \
     --ports $PORT \
-    --environment-variables MYENV=123 \
-    --secure-environment-variables SECRET=ABCD
+    --environment-variables OCR_API="https://invoiceocrp3.azurewebsites.net/invoices" \
+    --secure-environment-variables DATABASE_URL=mssql+pyodbc:///?odbc_connect=Driver%3D%7BODBC+Driver+18+for+SQL+Server%7D%3BServer%3Dtcp%3Aocrbd.database.windows.net%2C1433%3BDatabase%3Dgoudot%3BUid%3Dmohammed%3BPwd%3Dpassword%3C%C3%A0123%3BEncrypt%3Dyes%3BTrustServerCertificate%3Dno%3BConnection+Timeout%3D30%3B
+
 
 ```
 Documentation : https://learn.microsoft.com/en-us/cli/azure/container?view=azure-cli-latest
@@ -157,6 +159,19 @@ Restart conteneur:
  az container restart \
     --resource-group $RESOURCE_GROUP \
     --name $ECR_NAME
+
+ az container stop --resource-group goudot -n ecr-invoiceocr
+ az container stop --resource-group goudot -n ocrprog-goudot
+ az container stop --resource-group ocr-Berville -n instanceconteneurlb
+ az container stop --resource-group ocr-jonathan -n quitbox
+ az container stop --resource-group ocr-Pierre -n ecr-ocr-pierre
+ az container stop --resource-group OCR-REDA -n redcontainerinstance
+ az container stop --resource-group ocr-remi-t -n ecr-ocr-remi-t
+ az container stop --resource-group ocr-yahya -n yahya
+ az container stop --resource-group ocr-yahya -n yayaya
+ az container stop --resource-group ocr_kaelig -n ocr-corr-kael
+ az container stop --resource-group OCR_Mohammed -n ecr-ocr-mohammed
+
 ```
 
 Liste des Conteneurs:
@@ -175,8 +190,10 @@ Logs Conteneur:
 Copie projet -> datalab:
 ```bash
  # Utilisation .rsyncignore
- rsync -avz --exclude-from=.rsyncignore . goudot@$DATALAB:~/OCR_goudot/
+ TARGET=$MAME
+ rsync -avz --exclude-from=.rsyncignore . goudot@$TARGET:~/OCR_goudot/
 ```
+
 Sur datalab:
 ```bash
  docker build -t ocrprog .  
