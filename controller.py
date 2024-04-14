@@ -1,13 +1,13 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import select
 
-import dotenv, os, modele
-from modele import Facture, Client, engine
+import dotenv, os
+from modele2 import Facture, Client, engine
 
 dotenv.load_dotenv()
 
@@ -21,17 +21,22 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-def read_root(request: Request, no: str = 'FAC_2024_0326-9975', cust: str=''):
+def read_root(request: Request, no: str = 'FAC_2024_0326-9975'):
     with Session(engine) as session:
-        fac = session.execute(select(Facture).where(Facture.no == no)).scalar()
-        factures = session.execute(select(Facture.no).where(Facture.total!=Facture.cumul).order_by(Facture.dt.desc()).limit(100)).all()
-        if cust:
-            customers=session.execute(select(Client.name, Client.id).where(Client.name.like(f"%{cust}%"))).all()
-        else:
-            customers=[]
+        fac =session.get(Facture, no)
+        factures = session.execute(select(Facture.no).where(Facture.total!=Facture.cumul).order_by(Facture.dt.desc()).limit(200)).all()
         return templates.TemplateResponse(
-                       request=request, name="index.html", context={"fac": fac, "factures": factures, "customers":customers}
+                       request=request, name="index.html", context={"fac": fac, "factures": factures}
                    )
+
+@app.get("/vision")
+def read_root(request: Request, no: str = 'FAC_2024_0326-9975'):
+    with Session(engine) as session:
+        fac =session.get(Facture, no)
+        fac.update_vision()
+        session.commit()
+        return RedirectResponse("/?no="+no)
+
 
 @app.get("/updates")
 def read_root(request: Request):
