@@ -2,12 +2,15 @@ requests
 python-dotenv
 pillow
 
+colorama
+
 fastapi
 uvicorn
 jinja2
 python-multipart
 
 sqlalchemy
+pyodbc
 
 # Pour les tests - pas besoin pour l'image...
 #pytest
