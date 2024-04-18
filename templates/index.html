@@ -3,33 +3,26 @@
         <title>Appli OCR</title>
     </header>
     <body>
-        <h1>Application d'OCR, {{fac}}</h1>
+        <h1>Application d'OCR, </h1>
 
-        Pour la Maj : <a href="/updates">lien</a><br/>
+        Factures (total<>cumul): {%for f in factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}<br/><hr/>
 
-        Factures (total<>cumul): {%for f in factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}
-
-        <form method="get" action="/">
-            Client: <input id="v1" name="cust" type="text"/>
-            <input id="button" type="submit"/>
-        </form>
-        Customers: {%for c in customers%}{{c.id}} {{c.name}}, {%endfor%}<br/><br/>
-
-
-        Fac: {{fac}}, cumul: {{fac.cumul}}€<br/>
+        <h1>{{fac}}, cumul: {{fac.cumul}}€</h1>
         client: {{fac.client}}, cat <b>{{fac.client.cat}}</b></b><br/>
         commandes : <ul/>{%for c in fac.commandes%}<li>{{c}}</li>{%endfor%}</ul>
         Autre factures: {%for f in fac.client.factures%}<a href="/?no={{f.no}}">{{f.no}}</a>, {%endfor%}<br/>
 
         <table>
             <tr>
-                <td><img src="static/{{fac.no}}.png"/></td>
-                <td>OCR:<br/><iframe height="1000px" width="600px" src="static/{{fac.no}}.png.txt"></iframe></td>
+                <td><img src="https://invoiceocrp3.azurewebsites.net/invoices/{{fac.no}}"/></td>
+                <td style="vertical-align:top">
+                    QR:<pre>{{fac.txt_qr}}</pre>
+                    OCR:<pre>{{fac.txt_ocr}}</pre>
+
+                    <a href="/vision?no={{fac.no}}">Vision</a>:<pre>{{fac.txt_vision}}</pre>
+                </td>
             </tr>
         </table>
-
-        <hr/>
-        <img src="static/{{fac.no}}mod.png"/>
 
     </body>
 </html>
